@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Todo App</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 40px 16px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px #00000010;
+        }
+        h1 { margin-top: 0; }
+        .add-form { display: flex; gap: 8px; }
+        input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+        }
+        button {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+        }
+        ul { padding: 0; list-style: none; }
+        li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .task { flex: 1; overflow-wrap: anywhere; }
+        .completed {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+        .delete { background: #dc2626; }
+        .empty { color: #64748b; text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Todo List</h1>
+        <p>Organize your day, one task at a time.</p>
+
+        <form class="add-form" action="/add" method="POST">
+            <input type="text" name="task"
+                   placeholder="Enter a new task..." maxlength="250" required>
+            <button type="submit">Add</button>
+        </form>
+
+        <ul>
+            {% for todo in todos %}
+            <li>
+                <form action="/toggle/{{ todo.id }}" method="POST">
+                    <input type="checkbox" aria-label="Toggle task"
+                           onchange="this.form.submit()"
+                           {% if todo.completed %}checked{% endif %}>
+                </form>
+
+                <span class="task {% if todo.completed %}completed{% endif %}">
+                    {{ todo.task }}
+                </span>
+
+                <form action="/delete/{{ todo.id }}" method="POST"
+                      onsubmit="return confirm('Delete this task?')">
+                    <button class="delete" type="submit">Delete</button>
+                </form>
+            </li>
+            {% else %}
+            <li class="empty">No tasks yet. Add your first task!</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
+
