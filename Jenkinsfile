@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -9,6 +8,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'sidd7/todo-devsecops'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
     }
 
     stages {
@@ -84,6 +84,25 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                    set -eu
+
+                    kubectl --kubeconfig="$KUBECONFIG" \
+                      set image deployment/todo-app \
+                      todo-app=${DOCKER_IMAGE}:${BUILD_NUMBER}
+
+                    kubectl --kubeconfig="$KUBECONFIG" \
+                      rollout status deployment/todo-app \
+                      --timeout=180s
+
+                    kubectl --kubeconfig="$KUBECONFIG" \
+                      get deployment todo-app
+                '''
+            }
+        }
     }
 
     post {
@@ -92,11 +111,10 @@ pipeline {
                   allowEmptyResults: true
         }
         success {
-            echo 'Tests passed, SonarQube analysis completed, and Docker image published successfully!'
+            echo 'Tests passed, SonarQube analysis completed, Docker image published, and Kubernetes deployment succeeded!'
         }
         failure {
             echo 'Pipeline failed. Check the stage logs.'
         }
     }
 }
-
