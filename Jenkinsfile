@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -34,6 +35,20 @@ pipeline {
                     . .venv-ci/bin/activate
                     pytest -v --junitxml=test-results.xml
                 '''
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarScanner'
+
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner
+                        """
+                    }
+                }
             }
         }
 
@@ -77,10 +92,11 @@ pipeline {
                   allowEmptyResults: true
         }
         success {
-            echo 'Tests passed and Docker image published successfully!'
+            echo 'Tests passed, SonarQube analysis completed, and Docker image published successfully!'
         }
         failure {
             echo 'Pipeline failed. Check the stage logs.'
         }
     }
 }
+
